@@ -74,7 +74,7 @@ my-react-app/
 ### ✅ Step 5: Design the UI and Load the Model
 Refer to the codes in the repo.
 
-### 🌐 Deploying to Vercel (optional)
+### 🌐 Step 6: Deploying to Vercel (optional)
 
 ---
 
