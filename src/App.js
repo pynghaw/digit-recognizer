@@ -1,10 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
+import * as tf from '@tensorflow/tfjs';
+
 
 function App() {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [prediction, setPrediction] = useState(null);
+  const [model, setModel] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,11 +25,19 @@ function App() {
     const context = canvas.getContext('2d');
     context.scale(dpr, dpr);
     context.strokeStyle = '#2c3e50';
-    context.lineWidth = 3;
+    context.lineWidth = 25;
     context.lineCap = 'round';
     context.lineJoin = 'round';
     
     contextRef.current = context;
+
+    // Load the model
+    tf.loadLayersModel('/tfjs_model/model.json')
+    .then((loadedModel) => {
+      setModel(loadedModel);
+      console.log("✅ Model loaded!");
+    })
+    .catch((err) => console.error("❌ Error loading model:", err));
   }, []);
 
   const startDrawing = (e) => {
@@ -81,10 +92,40 @@ function App() {
     setPrediction(null);
   };
 
-  const predict = () => {
-    // Placeholder for prediction functionality
-    setPrediction("Sample prediction result");
+  const predict = async () => {
+    if (!model) {
+      alert("Model not loaded yet.");
+      return;
+    }
+  
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+  
+    // Get pixel data from canvas and resize it to 28x28
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let tensor = tf.browser.fromPixels(imageData, 1) // 1 for grayscale
+      .resizeNearestNeighbor([28, 28])
+      .toFloat()
+      .div(255.0)
+      .expandDims(0); // shape becomes [1, 28, 28, 1]
+  
+    // DEBUG: visualize preprocessed tensor
+    const previewCanvas = document.createElement("canvas");
+    previewCanvas.width = 28;
+    previewCanvas.height = 28;
+    document.body.appendChild(previewCanvas);
+    await tf.browser.toPixels(tensor.squeeze(), previewCanvas);
+  
+    // Predict using the model
+    const prediction = model.predict(tensor);
+    const predictedDigit = prediction.argMax(-1).dataSync()[0];
+  
+    // Display prediction
+    setPrediction(predictedDigit);
+    console.log("Raw prediction data:", await prediction.data());
   };
+  
+  
 
   return (
     <div className="drawing-app">
