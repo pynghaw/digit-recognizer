@@ -202,7 +202,7 @@ function App() {
 
   return (
     <div className="drawing-app">
-      <h1 className="app-title">Airost Handwritten Digit Recognition</h1>
+      <h1 className="app-title">Handwritten Digit Recognition</h1>
       <div className="canvas-container">
         <canvas
           ref={canvasRef}
