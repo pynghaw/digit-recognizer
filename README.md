@@ -1,70 +1,93 @@
-# Getting Started with Create React App
+# ✍️ Handwritten Digit Recognizer (TensorFlow.js + React)
+🔗Link: https://digit-recognizer-eta.vercel.app/
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a web-based handwritten digit recognition app built with a trained TensorFlow CNN model and deployed using a simple React UI. The model runs entirely in the browser using TensorFlow.js.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🧩 Features
 
-### `npm start`
+- Users can draw digits (0–9) on a canvas.
+- Predictions are made instantly in the browser.
+- No backend required — everything runs in the frontend.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## ⚙️ How to Set Up and Reproduce This Project
 
-### `npm test`
+### ✅ Step 1: Create and Activate Virtual Environment
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+# Create virtual environment
+python3.11.8 -m venv tfjsenv
 
-### `npm run build`
+# Activate on Windows
+.\tfjsenv\Scripts\activate
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### ✅ Step 2: Install Dependencies
+Create  a <b>'requirements.txt'</b>, below contains the specific version i use.
+```bash
+tensorflow==2.12.0
+tensorflowjs==3.18.0
+protobuf<=3.20.3
+numpy==1.23.5
+opencv-python
+matplotlib
+```
+Then, install the required Python packages using:
+```bash
+pip install -r requirements.txt
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### ✅ Step 3: Run the Training Script
+Train your model and export it to TensorFlow.js format.
+```bash
+# Save your trained model
+model.save("digit_model.h5")
+```
 
-### `npm run eject`
+Then run the following command in your terminal to convert the model:
+```bash
+tensorflowjs_converter --input_format keras digit_model.h5 tfjs_model
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+This will generate the following structure:
+```bash
+tfjs_model/
+├── model.json
+└── group1-shard1of1.bin
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### ✅ Step 4: Create a React Project and move Converted Model to Public Directory
+Copy the tfjs_model folder into your React project’s `public/` directory:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+my-react-app/
+├── public/
+│   ├── index.html
+│   └── tfjs_model/
+│       ├── model.json
+│       └── group1-shard1of1.bin
+```
+### ✅ Step 5: Design the UI and Load the Model
+Refer to the codes in the repo.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 🌐 Step 6: Deploying to Vercel (optional)
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 🚧 Problems Faced & Solutions
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 1. TensorFlow/Keras Version Incompatibility
 
-### Code Splitting
+Initially, the model was trained and saved using **Keras 3.x** in Google Colab. However, `tensorflowjs_converter` is **not compatible with models saved using Keras 3.x** — it expects models in **Keras 2.x format**.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+✅ **What I tried:**
+- Re-saving the model using `.h5` or `.keras` extensions — but Keras 3.x does not support true downgrading.
+- Downgrading TensorFlow and Keras directly in Google Colab, but Colab's environment did not allow proper control over package versions.
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+✅ **Final Solution:**
+- Switched to **VS Code** and created a fresh virtual environment manually.
+- Installed **specific compatible versions** of TensorFlow and Keras.
