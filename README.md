@@ -1,4 +1,4 @@
-# 🧠 Airost Handwritten Digit Recognizer (TensorFlow.js + React)
+# ✍️ Handwritten Digit Recognizer (TensorFlow.js + React)
 🔗Link: https://digit-recognizer-eta.vercel.app/
 
 This is a web-based handwritten digit recognition app built with a trained TensorFlow CNN model and deployed using a simple React UI. The model runs entirely in the browser using TensorFlow.js.
