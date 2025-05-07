@@ -23,23 +23,27 @@ function DrawingCanvas() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
+    const scaleX = canvas.width / rect.width; // Scale factor for X
+    const scaleY = canvas.height / rect.height; // Scale factor for Y
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+  
     ctx.beginPath();
     ctx.moveTo(x, y);
     setIsDrawing(true);
   };
-
+  
   const draw = (e) => {
     if (!isDrawing) return;
-
+  
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
+    const scaleX = canvas.width / rect.width; // Scale factor for X
+    const scaleY = canvas.height / rect.height; // Scale factor for Y
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+  
     ctx.lineTo(x, y);
     ctx.stroke();
   };

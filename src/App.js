@@ -8,6 +8,8 @@ function App() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [prediction, setPrediction] = useState(null);
   const [model, setModel] = useState(null);
+  const [rawOutput, setRawOutput] = useState([]);
+
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -162,20 +164,6 @@ function App() {
       // Update the temporary canvas with processed data
       tempCtx.putImageData(imgData, 0, 0);
       
-      // For debugging - show the processed image
-      tempCanvas.id = 'preview-canvas';
-      tempCanvas.style.width = '112px';
-      tempCanvas.style.height = '112px';
-      tempCanvas.style.border = '1px solid #000';
-      tempCanvas.style.position = 'absolute';
-      tempCanvas.style.bottom = '10px';
-      tempCanvas.style.right = '10px';
-      tempCanvas.style.backgroundColor = '#000'; // Make sure background is visible
-      document.body.appendChild(tempCanvas);
-      
-      // Log to debug
-      console.log("Preview canvas created with dimensions:", tempCanvas.width, "x", tempCanvas.height);
-      
       // Get tensor from processed canvas - using the processed image data
       const tensor = tf.browser.fromPixels(imgData, 1)
         .expandDims(0)
@@ -184,15 +172,24 @@ function App() {
     
       // Predict using the model
       const prediction = model.predict(tensor);
-      const predictedDigit = prediction.argMax(-1).dataSync()[0];
+
+      // Get the raw output as an array
+      const rawOutputData = Array.from(prediction.dataSync());
+      // Save it to state
+      setRawOutput(rawOutputData);
+      // Optional: also log to debug
+      console.log("Raw model output:", rawOutputData);
       
-      // Get confidence values
-      const probabilities = tf.softmax(prediction).dataSync();
+            
+      const temperature = 0.1;
+      const scaledLogits = tf.div(prediction, temperature);
+
+      const predictedDigit = scaledLogits.argMax(-1).dataSync()[0];
+      const probabilities = tf.softmax(scaledLogits).dataSync();
       const confidence = Math.round(probabilities[predictedDigit] * 100);
-    
-      // Display prediction with confidence
+
       setPrediction(`${predictedDigit} (${confidence}% confident)`);
-      console.log("Raw prediction data:", Array.from(probabilities).map((p, i) => `${i}: ${(p * 100).toFixed(2)}%`));
+
     } catch (error) {
       console.error("Error during prediction:", error);
       setPrediction("Error during prediction. See console.");
@@ -230,6 +227,17 @@ function App() {
         <div className="prediction-result card fade-in">
           <h3>Prediction Result</h3>
           <p>{prediction}</p>
+        </div>
+      )}
+
+      {rawOutput.length > 0 && (
+        <div className="raw-output card fade-in">
+          <h3>Possibility</h3>          
+            {rawOutput.map((val, index) => (
+              <p key={index}>
+                {index}: {(val * 100).toFixed(2)}%
+              </p>
+            ))}                   
         </div>
       )}
     </div>
