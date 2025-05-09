@@ -13,19 +13,21 @@ function App() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    // Set the canvas size
-    canvas.width = 400;
-    canvas.height = 400;
-    
+    const context = canvas.getContext('2d');
+        
     // Scale for high DPI displays
-    const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
     
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
-    
-    const context = canvas.getContext('2d');
+
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+
     context.scale(dpr, dpr);
+    
+    // Set drawing styles
     context.strokeStyle = '#2c3e50';
     context.lineWidth = 18;
     context.lineCap = 'round';
@@ -43,14 +45,10 @@ function App() {
   }, []);
 
   const startDrawing = (e) => {
-    e.preventDefault();
-    const rect = canvasRef.current.getBoundingClientRect();
-    const scaleX = canvasRef.current.width / rect.width;
-    const scaleY = canvasRef.current.height / rect.height;
-    
+    e.preventDefault();    
     const { offsetX, offsetY } = getCoordinates(e);
     contextRef.current.beginPath();
-    contextRef.current.moveTo(offsetX / scaleX, offsetY / scaleY);
+    contextRef.current.moveTo(offsetX, offsetY);
     setIsDrawing(true);
   };
 
@@ -58,12 +56,8 @@ function App() {
     if (!isDrawing) return;
     e.preventDefault();
     
-    const rect = canvasRef.current.getBoundingClientRect();
-    const scaleX = canvasRef.current.width / rect.width;
-    const scaleY = canvasRef.current.height / rect.height;
-    
     const { offsetX, offsetY } = getCoordinates(e);
-    contextRef.current.lineTo(offsetX / scaleX, offsetY / scaleY);
+    contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
   };
 
@@ -175,20 +169,15 @@ function App() {
 
       // Get the raw output as an array
       const rawOutputData = Array.from(prediction.dataSync());
-      // Save it to state
       setRawOutput(rawOutputData);
-      // Optional: also log to debug
       console.log("Raw model output:", rawOutputData);
-      
-            
-      const temperature = 0.1;
-      const scaledLogits = tf.div(prediction, temperature);
 
-      const predictedDigit = scaledLogits.argMax(-1).dataSync()[0];
-      const probabilities = tf.softmax(scaledLogits).dataSync();
-      const confidence = Math.round(probabilities[predictedDigit] * 100);
+      // Get the digit with the highest probability
+      const predictedDigit = prediction.argMax(-1).dataSync()[0];
+      const predictedProbability = rawOutputData[predictedDigit];
 
-      setPrediction(`${predictedDigit} (${confidence}% confident)`);
+      // Set prediction
+      setPrediction(`${predictedDigit} (${(predictedProbability * 100).toFixed(2)}%)`);
 
     } catch (error) {
       console.error("Error during prediction:", error);
@@ -199,47 +188,56 @@ function App() {
 
   return (
     <div className="drawing-app">
-      <h1 className="app-title">Handwritten Digit Recognition</h1>
-      <div className="canvas-container">
-        <canvas
-          ref={canvasRef}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={stopDrawing}
-          className="drawing-canvas"
-        />
-      </div>
-      
-      <div className="button-group">
-        <button className="button" onClick={clearCanvas}>
-          Clear
-        </button>
-        <button className="button secondary" onClick={predict}>
-          Predict
-        </button>
-      </div>
+      <h1 className="app-title">Digit Recoginzer</h1>
+      <div className="main-content">
+        {/* Left Panel */}
+        <div className="left-panel">
+          <div className="canvas-container">
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              onTouchStart={startDrawing}
+              onTouchMove={draw}
+              onTouchEnd={stopDrawing}
+              className="drawing-canvas"
+            />
+          </div>
 
-      {prediction && (
-        <div className="prediction-result card fade-in">
-          <h3>Prediction Result</h3>
-          <p>{prediction}</p>
+          <div className="button-group">
+            <button className="button" onClick={clearCanvas}>
+              Clear
+            </button>
+            <button className="button secondary" onClick={predict}>
+              Predict
+            </button>
+          </div>
         </div>
-      )}
 
-      {rawOutput.length > 0 && (
-        <div className="raw-output card fade-in">
-          <h3>Possibility</h3>          
-            {rawOutput.map((val, index) => (
-              <p key={index}>
-                {index}: {(val * 100).toFixed(2)}%
-              </p>
-            ))}                   
+        {/* Right Panel (always there) */}
+        <div className="right-panel">
+          {prediction ? (
+            <div className="prediction-result card fade-in">
+              <h3>Prediction Result</h3>
+              <h4>{prediction}</h4>
+
+              {rawOutput.length > 0 && (
+                rawOutput.map((val, index) => (
+                  <p key={index}>
+                    {index}: {(val * 100).toFixed(2)}%
+                  </p>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="placeholder card">
+              <p>No Prediction</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>              
     </div>
   );
 }
