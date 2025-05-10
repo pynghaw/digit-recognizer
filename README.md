@@ -90,4 +90,4 @@ Initially, the model was trained and saved using **Keras 3.x** in Google Colab. 
 
 ✅ **Final Solution:**
 - Switched to **VS Code** and created a fresh virtual environment manually.
-- Installed **specific compatible versions** of TensorFlow and Keras which is 2.x version and successfully re-saved + converted the model for deployment..
+- Installed **specific compatible versions** of TensorFlow and Keras and successfully re-saved + converted the model for deployment.
